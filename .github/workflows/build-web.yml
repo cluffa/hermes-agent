@@ -21,14 +21,14 @@ jobs:
 
       - name: Package
         run: |
-          cd web/dist
-          tar czf ../../dashboard.tar.gz .
+          ls -la hermes_cli/web_dist/
+          tar czf dashboard.tar.gz -C hermes_cli/web_dist .
 
       - name: Create Release
         uses: softprops/action-gh-release@v2
         with:
           tag_name: dash-${{ github.run_id }}
-          name: Hermes Dashboard ${{ github.run_id }}
+          name: Hermes Dashboard Build
           body: Prebuilt web dashboard dist for Android/Termux
           files: dashboard.tar.gz
           fail_on_unmatched_files: true
