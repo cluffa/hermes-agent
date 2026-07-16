@@ -1,51 +1,33 @@
-# Build the Hermes web dashboard for deployment on devices
-# where native build tooling is unavailable (e.g., Android/Termux).
-#
-# Usage:
-#   1. Trigger via GitHub UI: Actions → Build Web Dashboard → "Run workflow"
-#   2. Download the artifact from the run page
-#   3. Extract to ~/.hermes/hermes-agent/web/dist/
-#   4. Run: hermes dashboard --skip-build
-
 name: Build Web Dashboard
 
-on:
-  workflow_dispatch:
-    inputs:
-      ref:
-        description: "Branch, tag, or commit SHA"
-        required: false
-        default: "main"
-        type: string
+on: workflow_dispatch
+
+permissions:
+  contents: write
 
 jobs:
   build:
-    name: Build web dist
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
         with:
           repository: NousResearch/hermes-agent
-          ref: ${{ inputs.ref || 'main' }}
 
       - uses: actions/setup-node@v4
         with:
           node-version: "22"
           cache: npm
 
-      - name: Install dependencies
-        run: npm ci
+      - run: npm ci
+      - run: npm run build -w web
 
-      - name: Build web dashboard
-        run: npm run build -w web
-
-      - name: Package dist
-        run: |
-          cd web/dist
-          tar czf ../../dashboard-dist.tar.gz .
-
-      - name: Upload artifact
-        uses: actions/upload-artifact@v4
+      - uses: ncipollo/release-action@v1
         with:
-          name: hermes-dashboard-dist
-          path: dashboard-dist.tar.gz
+          tag: dashboard-build-${{ github.run_id }}
+          name: Hermes Dashboard Build
+          body: Prebuilt web dashboard dist for Android/Termux
+          artifacts: web/dist/
+          omitBodyDuringUpdate: true
+          allowUpdates: true
+          replacesArtifacts: true
+          artifactErrorsFailBuild: true
