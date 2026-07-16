@@ -3,7 +3,7 @@
 #
 # Usage:
 #   1. Trigger via GitHub UI: Actions → Build Web Dashboard → "Run workflow"
-#   2. Download the artifact
+#   2. Download the artifact from the run page
 #   3. Extract to ~/.hermes/hermes-agent/web/dist/
 #   4. Run: hermes dashboard --skip-build
 
@@ -39,11 +39,13 @@ jobs:
       - name: Build web dashboard
         run: npm run build -w web
 
+      - name: Package dist
+        run: |
+          cd web/dist
+          tar czf ../../dashboard-dist.tar.gz .
+
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: hermes-dashboard-dist
-          path: web/dist/
-          compression-level: 6
-          if-no-files-found: warn
-          overwrite: true
+          path: dashboard-dist.tar.gz
