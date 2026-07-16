@@ -10,8 +10,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-        with:
-          repository: NousResearch/hermes-agent
 
       - uses: actions/setup-node@v4
         with:
@@ -21,13 +19,16 @@ jobs:
       - run: npm ci
       - run: npm run build -w web
 
-      - uses: ncipollo/release-action@v1
+      - name: Package
+        run: |
+          cd web/dist
+          tar czf ../../dashboard.tar.gz .
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
         with:
-          tag: dashboard-build-${{ github.run_id }}
-          name: Hermes Dashboard Build
+          tag_name: dash-${{ github.run_id }}
+          name: Hermes Dashboard ${{ github.run_id }}
           body: Prebuilt web dashboard dist for Android/Termux
-          artifacts: web/dist/
-          omitBodyDuringUpdate: true
-          allowUpdates: true
-          replacesArtifacts: true
-          artifactErrorsFailBuild: true
+          files: dashboard.tar.gz
+          fail_on_unmatched_files: true
